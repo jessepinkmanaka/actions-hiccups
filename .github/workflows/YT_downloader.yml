@@ -6,15 +6,15 @@ on:
       video_url:
         description: "YouTube URL"
         required: true
-
+        type: string
       mode:
         description: "Download Mode"
         required: true
         type: choice
         options:
-          - 720p
-          - 480p
-          - audio
+          - "720p"
+          - "480p"
+          - "audio"
 
 jobs:
   download:
@@ -29,9 +29,31 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt update
-          sudo apt install -y ffmpeg rar
-
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg rar
           python3 -m pip install --upgrade pip
-          pip install yt-dlp
+          pip3 install yt-dlp
+
+      - name: Prepare folders
+        run: |
+          mkdir -p downloads
+          mkdir -p output
+          chmod +x scripts/process.sh
+
+      - name: Download and process
+        env:
+          URL: ${{ github.event.inputs.video_url }}
+          MODE: ${{ github.event.inputs.mode }}
+        run: ./scripts/process.sh
+
+      - name: Generate release tag
+        id: tag
+        run: |
+          TAG="release-$(date +'%Y%m%d-%H%M%S')"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
           files: output/*
