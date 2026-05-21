@@ -1,0 +1,37 @@
+name: yt-dlp-downloader
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "YouTube URL"
+        required: true
+
+      mode:
+        description: "Download Mode"
+        required: true
+        type: choice
+        options:
+          - 720p
+          - 480p
+          - audio
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y ffmpeg rar
+
+          python3 -m pip install --upgrade pip
+          pip install yt-dlp
+          files: output/*
